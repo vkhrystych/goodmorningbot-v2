@@ -6,6 +6,22 @@ var firebase = require("firebase/app");
 require("firebase/firestore");
 dotenv.config();
 
+const { getCityFromGoogleResponse } = require("./utils");
+
+const geocodeUrl = "https://maps.googleapis.com/maps/api/geocode/json";
+
+const getUserLocation = async (location) => {
+  const getCityReq = await fetch(
+    `${geocodeUrl}?key=${process.env.GOOGLE_API_KEY}&latlng=${location.latitude},${location.longitude}`
+  );
+
+  const resultsJson = await getCityReq.json();
+
+  const locationObj = getCityFromGoogleResponse(resultsJson.results);
+
+  return locationObj;
+};
+
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
 firebase.initializeApp({
@@ -20,9 +36,17 @@ firebase.initializeApp({
 
 const db = firebase.firestore();
 
-bot.start(async (ctx) => {
-  const currentChat = await ctx.getChat();
-  console.log("new user: ", currentChat);
+bot.start((ctx) => {
+  ctx.reply(
+    "Привет, каждый день в 8 утра я буду присылать тебе три главных новости c DTF.ru и прогноз погоды на сегодня."
+  );
+
+  ctx.reply("Пришли мне свою локацию, чтобы я смог присылать тебе погоду.");
+});
+
+bot.on("location", async ({ reply, message, getChat }) => {
+  const currentChat = await getChat();
+  const userLocation = await getUserLocation(message.location);
 
   db.collection("chats")
     .get()
@@ -35,14 +59,16 @@ bot.start(async (ctx) => {
         chats[chat.chatId] = chat;
       });
 
-      if (!chats[currentChat.id])
+      if (!chats[currentChat.id]) {
         db.collection("chats").add({
           chatId: currentChat.id,
           name: currentChat.username,
+          location: userLocation,
         });
-    });
 
-  // ctx.reply("Welcome");
+        reply("Спасибо! Завтра в 8 утра тебе прийдёт первый месседж <3");
+      }
+    });
 });
 
 bot.launch();
