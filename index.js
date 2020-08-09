@@ -59,12 +59,15 @@ bot.on("location", async ({ reply, message, getChat }) => {
         chats[chat.chatId] = chat;
       });
 
+      const newUserData = {
+        chatId: currentChat.id,
+        location: userLocation,
+      };
+
+      if (currentChat.username) newUserData["name"] = currentChat.username;
+
       if (!chats[currentChat.id]) {
-        db.collection("chats").add({
-          chatId: currentChat.id,
-          name: currentChat.username,
-          location: userLocation,
-        });
+        db.collection("chats").add(newUserData);
 
         reply("Спасибо! Завтра в 8 утра тебе прийдёт первый месседж <3");
       }
