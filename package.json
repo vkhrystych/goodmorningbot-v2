@@ -1,0 +1,30 @@
+{
+  "name": "goodmorningbot-v2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "firebase": "^7.17.2",
+    "node-cron": "^2.0.3",
+    "node-fetch": "^2.6.0",
+    "node-telegram-bot-api": "^0.50.0",
+    "telegraf": "^3.38.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  },
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vkhrystych/goodmorningbot-v2.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vkhrystych/goodmorningbot-v2/issues"
+  },
+  "homepage": "https://github.com/vkhrystych/goodmorningbot-v2#readme"
+}
