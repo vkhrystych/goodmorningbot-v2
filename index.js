@@ -6,7 +6,7 @@ var firebase = require("firebase/app");
 require("firebase/firestore");
 dotenv.config();
 
-const { getCityFromGoogleResponse } = require("./utils");
+const { prepareData, getCityFromGoogleResponse } = require("./utils");
 
 const geocodeUrl = "https://maps.googleapis.com/maps/api/geocode/json";
 
@@ -72,3 +72,32 @@ bot.on("location", async ({ reply, message, getChat }) => {
 });
 
 bot.launch();
+
+// send every 8am 0:                        0 8 * * *
+// send message every 10 seconds:           */10 * * * * *
+// send message every 1 hour at 00 minutes: 0 0-23 * * *
+
+const cronTiming =
+  process.env.MODE === "development" ? "0 0-23 * * *" : "0 8 * * *";
+
+cron.schedule(cronTiming, () => {
+  db.collection("chats")
+    .get()
+    .then((querySnapshot) => {
+      const subscribers = [];
+
+      querySnapshot.forEach((doc) => {
+        const chat = doc.data();
+
+        subscribers.push(chat);
+      });
+
+      subscribers.forEach(async (subscriber) => {
+        const message = await prepareData(subscriber.location.city);
+
+        bot.telegram.sendMessage(subscriber.chatId, message, {
+          parse_mode: "Markdown",
+        });
+      });
+    });
+});
