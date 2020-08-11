@@ -6,21 +6,7 @@ var firebase = require("firebase/app");
 require("firebase/firestore");
 dotenv.config();
 
-const { prepareData, getCityFromGoogleResponse } = require("./utils");
-
-const geocodeUrl = "https://maps.googleapis.com/maps/api/geocode/json";
-
-const getUserLocation = async (location) => {
-  const getCityReq = await fetch(
-    `${geocodeUrl}?key=${process.env.GOOGLE_API_KEY}&latlng=${location.latitude},${location.longitude}`
-  );
-
-  const resultsJson = await getCityReq.json();
-
-  const locationObj = getCityFromGoogleResponse(resultsJson.results);
-
-  return locationObj;
-};
+const { prepareMessage } = require("./utils");
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
@@ -46,7 +32,6 @@ bot.start((ctx) => {
 
 bot.on("location", async ({ reply, message, getChat }) => {
   const currentChat = await getChat();
-  const userLocation = await getUserLocation(message.location);
 
   db.collection("chats")
     .get()
@@ -61,7 +46,10 @@ bot.on("location", async ({ reply, message, getChat }) => {
 
       const newUserData = {
         chatId: currentChat.id,
-        location: userLocation,
+        location: {
+          lat: message.location.latitude,
+          lon: message.location.longitude,
+        },
       };
 
       if (currentChat.username) newUserData["name"] = currentChat.username;
@@ -96,7 +84,7 @@ cron.schedule(cronTiming, () => {
       });
 
       subscribers.forEach(async (subscriber) => {
-        const message = await prepareData(subscriber.location.city);
+        const message = await prepareMessage(subscriber.location);
 
         bot.telegram.sendMessage(subscriber.chatId, message, {
           parse_mode: "Markdown",

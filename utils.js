@@ -16,30 +16,9 @@ const monthesLocale = [
 ];
 
 module.exports = {
-  getCityFromGoogleResponse: (results) => {
-    let storableLocation = {};
-
-    for (var ac = 0; ac < results[0].address_components.length; ac++) {
-      var component = results[0].address_components[ac];
-
-      if (
-        component.types.includes("sublocality") ||
-        component.types.includes("locality")
-      ) {
-        storableLocation.city = component.long_name;
-      } else if (component.types.includes("administrative_area_level_1")) {
-        storableLocation.state = component.short_name;
-      } else if (component.types.includes("country")) {
-        storableLocation.country = component.long_name;
-        storableLocation.registered_country_iso_code = component.short_name;
-      }
-    }
-
-    return storableLocation;
-  },
-  getWeather: async (city) => {
+  getWeather: async (location) => {
     const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${process.env.OPEN_WEATHER_TOKEN}`
+      `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&units=metric&appid=${process.env.OPEN_WEATHER_TOKEN}`
     );
     const result = await response.json();
 
@@ -68,7 +47,7 @@ module.exports = {
 
     return resJson.result;
   },
-  prepareData: async (city) => {
+  prepareMessage: async (city) => {
     const date = new Date();
 
     let result = `*Доброе утро, кожаный мешок* 👾 \nСегодня ${date.getDate()} ${
