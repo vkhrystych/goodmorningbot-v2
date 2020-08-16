@@ -68,24 +68,27 @@ bot.launch();
 // send message every 10 seconds:           */10 * * * * *
 // send message every 1 hour at 00 minutes: 0 0-23 * * *
 
-const cronTiming =
-  process.env.MODE === "dev" ? "*/10 * * * * *" : "0 8 * * *";
+const cronTiming = process.env.MODE === "dev" ? "*/10 * * * * *" : "0 8 * * *";
 
 cron.schedule(cronTiming, () => {
-  if (proccess.env.MODE === "dev") {
-      const subscriber = {
-        chatid: 161065379,
-        location: {
-          lat: 50.412399,
-          lon: 30.528374
-        }
-      };
+  if (process.env.MODE === "dev") {
+    const subscriber = {
+      chatId: 161065379,
+      location: {
+        lat: 50.412399,
+        lon: 30.528374,
+      },
+    };
 
-      const message = await preparemessage(subscriber.location);
+    const spamMessages = async () => {
+      const message = await prepareMessage(subscriber.location);
 
       bot.telegram.sendMessage(subscriber.chatId, message, {
         parse_mode: "Markdown",
       });
+    };
+
+    spamMessages();
   } else {
     db.collection("chats")
       .get()
