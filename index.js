@@ -1,9 +1,9 @@
 const { Telegraf } = require("telegraf");
 const cron = require("node-cron");
-const fetch = require("node-fetch");
 const dotenv = require("dotenv");
 var firebase = require("firebase/app");
 require("firebase/firestore");
+
 dotenv.config();
 
 const { prepareMessage } = require("./utils");
@@ -69,26 +69,42 @@ bot.launch();
 // send message every 1 hour at 00 minutes: 0 0-23 * * *
 
 const cronTiming =
-  process.env.MODE === "development" ? "0 0-23 * * *" : "0 8 * * *";
+  process.env.MODE === "dev" ? "*/10 * * * * *" : "0 8 * * *";
 
 cron.schedule(cronTiming, () => {
-  db.collection("chats")
-    .get()
-    .then((querySnapshot) => {
-      const subscribers = [];
+  if (proccess.env.mode === "dev") {
+      const subscriber = {
+        chatId: 161065379,
+        location: {
+          lat: 50.412399,
+          lon: 30.528374
+        }
+      };
 
-      querySnapshot.forEach((doc) => {
-        const chat = doc.data();
+      const message = await prepareMessage(subscriber.location);
 
-        subscribers.push(chat);
+      bot.telegram.sendMessage(subscriber.chatId, message, {
+        parse_mode: "Markdown",
       });
+  } else {
+    db.collection("chats")
+      .get()
+      .then((querySnapshot) => {
+        const subscribers = [];
 
-      subscribers.forEach(async (subscriber) => {
-        const message = await prepareMessage(subscriber.location);
+        querySnapshot.forEach((doc) => {
+          const chat = doc.data();
 
-        bot.telegram.sendMessage(subscriber.chatId, message, {
-          parse_mode: "Markdown",
+          subscribers.push(chat);
+        });
+
+        subscribers.forEach(async (subscriber) => {
+          const message = await prepareMessage(subscriber.location);
+
+          bot.telegram.sendMessage(subscriber.chatId, message, {
+            parse_mode: "Markdown",
+          });
         });
       });
-    });
+  }
 });
