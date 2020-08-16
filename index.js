@@ -72,16 +72,16 @@ const cronTiming =
   process.env.MODE === "dev" ? "*/10 * * * * *" : "0 8 * * *";
 
 cron.schedule(cronTiming, () => {
-  if (proccess.env.mode === "dev") {
+  if (proccess.env.MODE === "dev") {
       const subscriber = {
-        chatId: 161065379,
+        chatid: 161065379,
         location: {
           lat: 50.412399,
           lon: 30.528374
         }
       };
 
-      const message = await prepareMessage(subscriber.location);
+      const message = await preparemessage(subscriber.location);
 
       bot.telegram.sendMessage(subscriber.chatId, message, {
         parse_mode: "Markdown",
