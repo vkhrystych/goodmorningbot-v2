@@ -10,7 +10,7 @@ const { prepareMessage } = require("./utils");
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
-firebase.initializeApp({
+const firebaseConfig = {
   appId: process.env.FIREBASE_APPID,
   apiKey: process.env.FIREBASE_APIKEY,
   projectId: process.env.FIREBASE_PROJECTID,
@@ -18,7 +18,9 @@ firebase.initializeApp({
   databaseURL: process.env.FIREBASE_DATABASEURL,
   storageBucket: process.env.FIREBASE_STORAGEBUCKET,
   messagingSenderId: process.env.FIREBASE_MESSAGINGSENDERID,
-});
+};
+
+firebase.initializeApp(firebaseConfig);
 
 const db = firebase.firestore();
 
@@ -69,11 +71,14 @@ bot.launch();
 // send message every 1 hour at 00 minutes: 0 0-23 * * *
 
 const cronTiming = process.env.MODE === "dev" ? "*/10 * * * * *" : "0 8 * * *";
+const MY_TELEGRAM_ID = 161065379;
 
-cron.schedule(cronTiming, () => {
+const sendMessageToUsers = () => {
   if (process.env.MODE === "dev") {
+    // send message only to me in dev mode
+
     const subscriber = {
-      chatId: 161065379,
+      chatId: MY_TELEGRAM_ID,
       location: {
         lat: 50.412399,
         lon: 30.528374,
@@ -110,4 +115,6 @@ cron.schedule(cronTiming, () => {
         });
       });
   }
-});
+};
+
+cron.schedule(cronTiming, sendMessageToUsers);
